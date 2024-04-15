@@ -22,18 +22,19 @@ public class World extends JPanel
     private ArrayList<Creature> creatures;
     private ArrayList<Creature> newCreatures;
     private ArrayList<Creature> removeCreatures;
+    private ArrayList<Blob> blobs;
     private BufferedImage worldImage;
     private BufferedImage groundImage;
     
     private Timer timer;
     
-    private final int width = 100;     
-    private final int height = 50;    
+    private final int width = 120;     
+    private final int height = 80;    
     private final Color grassColor = new Color(10, 200, 50);    
     private final Color dirtColor = new Color(50, 20, 30);   
     private final Color blobColor = new Color(10, 20, 110);    
     private final Color lavaColor = new Color(150, 10, 15);    
-    private final int startPopulation = 100;
+    private final int startPopulation = 120;
     private final int maxPopulation = 75;
     private final int blobEnergy =10;
     private final int grassEnergy = 5;
@@ -51,6 +52,14 @@ public class World extends JPanel
         });
         timer.start();
     }
+    public int getWorldWidth()
+    {
+        return width;
+    }
+    public int getWorldHeight()
+    {
+        return width;
+    }
     private void update()
     {
         for(Creature creature : creatures)
@@ -66,6 +75,10 @@ public class World extends JPanel
         {
             creatures.remove(creature);
         }
+        for(Blob blob : blobs)
+        {
+            blob.update(this);
+        }
         removeCreatures.clear();
         for(int i = 0; i < grassRegrowRate; i++)
         {
@@ -78,7 +91,11 @@ public class World extends JPanel
         }
         Graphics g = worldImage.getGraphics();
         g.drawImage(groundImage,0 , 0, width, height, null);
-        //Draw blob
+        
+        for(Blob blob : blobs)
+        {
+            blob.draw(g);
+        }
         repaint();
     }
     
@@ -88,12 +105,36 @@ public class World extends JPanel
         creatures = new ArrayList<>();
         removeCreatures = new ArrayList<>();
         newCreatures = new ArrayList<>();
+        blobs = new ArrayList<>();
+        
         Graphics g = groundImage.getGraphics();
         g.setColor(grassColor);
         g.fillRect(0,0,width,height);
+        generateLava();
         for(int i = 0; i< startPopulation; i++)
         {
             creatures.add(new Creature((int)(300*Math.random()), (int)(200*Math.random())));
+        }
+        for(int i = 0; i < 2; i ++)
+        {
+            int x = (int)(Math.random() * width);
+            int y = (int)(Math.random() * height);
+            int w = (int)(Math.random() * 10 + 10);
+            int h = (int)(Math.random() * 10 + 10);
+            blobs.add(new Blob(x,y,w,h));
+        }
+    }
+    public void generateLava()
+    {
+        //Standing on lava takes away metabolism. Eventually, the should start avoiding it.
+        Graphics g = groundImage.getGraphics();
+        g.setColor(lavaColor);
+        int i = 0;
+        while(i<5)
+        {
+            int centerX = (int)(width*Math.random());
+            int centerY = (int)(height*Math.random());
+            g.fillOval(centerX, centerY, centerX + (int)(2*Math.random()+1), centerY + (int)(2*Math.random()+1));i++;
         }
     }
     @Override
@@ -130,11 +171,15 @@ public class World extends JPanel
             return 0.0;
         
         
-        int color = worldImage.getRGB(x, y);
-        if(color == grassColor.getRGB())
+        int tileColor = worldImage.getRGB(x, y);
+        if(tileColor == grassColor.getRGB())
             return 0.5;
-        else if(color==dirtColor.getRGB())
+        else if(tileColor==dirtColor.getRGB())
             return 0.0;
+        else if(tileColor==Blob.color.getRGB())
+            return 1.0;
+        else if(tileColor==lavaColor.getRGB())
+            return .1;
         else
             return 1.0;
     }

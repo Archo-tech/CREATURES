@@ -89,6 +89,22 @@ public class Creature
         predator = output[5]>0;
         
         metabolism--;
+        if(world.getTile(x, y)==.1)
+        {
+            metabolism = metabolism - (metabolism/8);
+        }
+        if(predator)
+        {
+            int dx = convertOutput(output[0]);
+            int dy = convertOutput(output[1]);
+            Creature other = world.getCreature(x+dx,y+dy);
+            if(other != null && other.isPredator())
+            {
+                metabolism+=other.getMetabolism();
+                world.removeCeature(other);
+                System.out.println("he is ded :(");
+            }
+        }
         if(!predator)
         {
             metabolism+=world.eat(x,y);
@@ -106,18 +122,20 @@ public class Creature
             world.removeCeature(this);
         }
     }
+    private int convertOutput(double x)
+    {
+        if(x<-.33)
+            return -1;
+        else if(x < .33)
+            return 0;
+        else 
+            return 1;
+    }
+    
     private void move(double h, double v, World world)
     {
-        int dx;
-        int dy;
-        
-        if(h<-.33)dx=-1;
-        else if(h < .33)dx=0;
-        else dx=1;
-        
-        if(v<-.33)dy=-1;
-        else if(v < .33) dy=0;
-        else dy=1;
+        int dx = convertOutput(h);
+        int dy = convertOutput(v);
         
         if(world.canMove(x + dx, y+dy))
         {

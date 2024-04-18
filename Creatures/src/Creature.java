@@ -89,9 +89,10 @@ public class Creature
         predator = output[5]>0;
         
         metabolism--;
-        if(world.getTile(x, y)==.1)
+        if(world.getTile(x, y)==-1.0)
         {
-            metabolism = metabolism - (metabolism/8);
+            metabolism-=15;
+            System.out.println(metabolism+", "+x+" "+y);
         }
         if(predator)
         {
@@ -105,21 +106,22 @@ public class Creature
                 System.out.println("he is ded :(");
             }
         }
-        if(!predator)
-        {
+        else
             metabolism+=world.eat(x,y);
-        }
+        
         if(metabolism >= maxMetabolism * spawnLevel)
         {
             for(int i = 0; i < spawnRate;i++)
             {
-                Creature spawn = getSpawn();
-                world.addCreature(spawn);
+                world.addCreature(getSpawn());
+                System.out.println("A CHILD!");
             }
         }
+        int mox = 5;
         if(metabolism <=0)
         {
             world.removeCeature(this);
+            System.out.println("REMOVE!"+mox);
         }
     }
     private int convertOutput(double x)
